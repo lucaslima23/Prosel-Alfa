@@ -9,7 +9,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
     
-    <!-- Bibliotecas externas para exportação profissional nativa Excel de forma offline -->
+    <!-- Bibliotecas externas para nuvem (Supabase) e planilhas (SheetJS) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.8/dist/umd/supabase.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <style>
@@ -35,6 +36,1083 @@
         body {
             background-color: var(--bg-light);
             color: var(--text-dark);
+            padding-bottom: 80px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), #3d102b);
+            color: white;
+            padding: 12px 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-logo {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+
+        .header-text-container {
+            text-align: left;
+            flex: 1;
+        }
+
+        header h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        header p {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            margin-top: 2px;
+        }
+
+        .badge-status {
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(92, 29, 67, 0.05);
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .card-green {
+            border-left-color: var(--secondary-color);
+        }
+
+        .card-accent {
+            border-left-color: var(--accent-color);
+        }
+
+        h2 {
+            font-size: 1.15rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            border-bottom: 2px solid #f3eff2;
+            padding-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #4a3440;
+        }
+
+        input[type="text"], input[type="number"], input[type="password"], select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #fff;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary-color);
+        }
+
+        .info-alert-text {
+            background-color: #fff9e6;
+            border: 1px solid #ffeaa7;
+            color: #d39e00;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .note-preview {
+            display: inline-block;
+            margin-top: 6px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+            background-color: #eaf6ed;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: filter 0.2s;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-secondary { background-color: var(--secondary-color); }
+        .btn-outline { background-color: transparent; color: var(--primary-color); border: 2px solid var(--primary-color); box-shadow: none; }
+
+        .criteria-category { background: #fdfbfc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 15px; }
+        .criteria-category h3 { font-size: 0.95rem; color: var(--primary-color); margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .subitem-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #efe9ec; }
+        .subitem-row:last-child { border-bottom: none; }
+        .subitem-info { flex: 1; padding-right: 10px; }
+        .subitem-title { font-size: 0.9rem; font-weight: 500; }
+        .subitem-max { font-size: 0.75rem; color: #8c7380; }
+        .subitem-input { width: 85px; }
+        .subitem-input input { text-align: center; padding: 8px; }
+
+        .penalty-box { background-color: #fff0f0; border: 1px solid #ffcccc; border-radius: 8px; padding: 12px; display: flex; align-items: center; justify-content: space-between; margin-top: 15px; }
+        .penalty-label h4 { color: var(--danger-color); font-size: 0.95rem; }
+        .penalty-label p { font-size: 0.75rem; color: #664444; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--danger-color); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+        th { background-color: var(--primary-color); color: white; text-align: left; padding: 10px; font-weight: 600; white-space: nowrap; }
+        td { padding: 10px; border-bottom: 1px solid #f0e6ec; white-space: nowrap; }
+        tr:nth-child(even) { background-color: #faf6f8; }
+        .rank-badge { display: inline-block; width: 24px; height: 24px; text-align: center; border-radius: 50%; font-weight: bold; font-size: 0.8rem; }
+        tr:nth-child(1) .rank-badge { background-color: var(--accent-color); color: var(--primary-color); }
+        tr:nth-child(2) .rank-badge { background-color: #e0e0e0; color: #333; }
+        tr:nth-child(3) .rank-badge { background-color: #cd7f32; color: white; }
+
+        /* Estilos específicos para realce das células cortadas em tela */
+        .badge-cut-min { background-color: #ffebe6; color: var(--danger-color); font-weight: bold; padding: 2px 4px; border-radius: 4px; font-size: 0.75rem; }
+        .badge-cut-max { background-color: #e3fcef; color: var(--secondary-color); font-weight: bold; padding: 2px 4px; border-radius: 4px; font-size: 0.75rem; }
+
+        .sync-bar { background-color: #eaf6ed; color: var(--secondary-color); padding: 8px; border-radius: 6px; font-size: 0.8rem; text-align: center; margin-bottom: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        nav.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background-color: white; display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.08); z-index: 100; }
+        
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #8c7380; text-decoration: none; font-size: 0.75rem; font-weight: 500; cursor: pointer; border: none; background: transparent; }
+        .nav-item.active { color: var(--primary-color); font-weight: bold; }
+        .nav-icon { font-size: 1.2rem; margin-bottom: 2px; }
+        .candidate-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f0e6ec; }
+        .candidate-list-item:last-child { border-bottom: none; }
+        .phase-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        .phase-30 { background-color: #e3fcef; color: #00875a; }
+        .phase-out { background-color: #ffebe6; color: #de350b; }
+        .evaluator-banner { background-color: #f0e6ec; padding: 8px 15px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; font-weight: 500; }
+        .change-evaluator-btn { color: var(--primary-color); text-decoration: underline; cursor: pointer; background: none; border: none; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="logo.png" alt="Logo Alfa" class="header-logo">
+        <div class="header-text-container">
+            <h1>Processo Seletivo - Projeto Alfa</h1>
+            <p>Liga de Emergências Médicas e Trauma</p>
+        </div>
+        <div id="online-status" class="badge-status">Conectando...</div>
+    </header>
+
+    <div id="evaluator-profile-banner" class="evaluator-banner" style="display:none;">
+        <span>Avaliador(a): <strong id="current-evaluator-name">-</strong></span>
+        <button class="change-evaluator-btn" onclick="clearEvaluator()">Trocar Nome</button>
+    </div>
+
+    <main>
+        <div id="sync-status-msg" class="sync-bar" style="display:none;">
+            ✓ Dados sincronizados com a nuvem (Supabase)
+        </div>
+
+        <!-- TELA: IDENTIFICAÇÃO DO AVALIADOR -->
+        <section id="view-login" class="view-section active">
+            <div class="card">
+                <h2>Identificação do Diretor / Avaliador</h2>
+                <p style="font-size: 0.9rem; margin-bottom: 15px; color: #666;">
+                    Por favor, insira o seu nome completo. Suas avaliações ficarão salvas na nuvem vinculadas à sua assinatura.
+                </p>
+                <div class="form-group">
+                    <label for="login-evaluator-custom">Seu Nome Completo</label>
+                    <input type="text" id="login-evaluator-custom" placeholder="Digite aqui...">
+                </div>
+                <button class="btn" onclick="saveEvaluatorIdentity()">Entrar no Sistema</button>
+            </div>
+        </section>
+
+        <!-- TELA: AUTENTICAÇÃO DAS PÁGINAS PROTEGIDAS -->
+        <section id="view-auth" class="view-section">
+            <div class="card">
+                <h2 style="color: var(--danger-color);">Acesso Restrito ao Administrador</h2>
+                <p style="font-size: 0.9rem; margin-bottom: 15px; color: #666;">
+                    Esta seção é protegida. Digite a senha master para prosseguir.
+                </p>
+                <div class="form-group">
+                    <label for="admin-auth-password">Senha de Segurança</label>
+                    <input type="password" id="admin-auth-password" placeholder="••••••••">
+                </div>
+                <button class="btn" onclick="verifyAdminPassword()">Verificar Credenciais</button>
+            </div>
+        </section>
+
+        <!-- TELA: AVALIAÇÃO -->
+        <section id="view-evaluation" class="view-section">
+            <div class="info-alert-text">
+                ⚠️ As notas devem ser dadas com até duas casas decimais. Exemplo: 0,35 ou 0.35 (O sistema aceita ponto ou vírgula).
+            </div>
+
+            <div class="card">
+                <h2>Lançar Notas da Apresentação</h2>
+                <div class="form-group">
+                    <label for="eval-candidate-search">Buscar Candidato (Top 30)</label>
+                    <input type="text" id="eval-candidate-search" placeholder="🔍 Digite para pesquisar..." oninput="filterCandidateDropdown()">
+                </div>
+                <div class="form-group">
+                    <label for="eval-candidate-select">Candidato Selecionado</label>
+                    <select id="eval-candidate-select">
+                        <option value="">-- Selecione o candidato --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="evaluation-form-container" style="display:none;">
+                <!-- ORGANIZAÇÃO -->
+                <div class="criteria-category">
+                    <h3>ORGANIZAÇÃO <span>Máx 1.5</span></h3>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Apresentação</div>
+                            <div class="subitem-max">Máximo: 0,5</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_org_apres" class="decimal-input" placeholder="0,00" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Linha de raciocínio</div>
+                            <div class="subitem-max">Máximo: 0,5</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_org_racio" class="decimal-input" placeholder="0,00" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Compreensão</div>
+                            <div class="subitem-max">Máximo: 0,5</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_org_compre" class="decimal-input" placeholder="0,00" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                </div>
+
+                <!-- CRIATIVIDADE -->
+                <div class="criteria-category">
+                    <h3>CRIATIVIDADE <span>Máx 1.0</span></h3>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Artístico</div>
+                            <div class="subitem-max">Máximo: 0,5</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_cri_art" class="decimal-input" placeholder="0,00" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Inovação</div>
+                            <div class="subitem-max">Máximo: 0,5</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_cri_inov" class="decimal-input" placeholder="0,00" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                </div>
+
+                <!-- METODOLOGIA ALEATÓRIA -->
+                <div class="criteria-category">
+                    <h3>METODOLOGIA ALEATÓRIA <span>Máx 0.25</span></h3>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Ensinou?</div>
+                            <div class="subitem-max">Máximo: 0,25</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_met_ensino" class="decimal-input" placeholder="0,00" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                </div>
+
+                <!-- CONTEÚDO -->
+                <div class="criteria-category">
+                    <h3>CONTEÚDO <span>Máx 2.0</span></h3>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Domínio</div>
+                            <div class="subitem-max">Máximo: 0,5</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_cont_dom" class="decimal-input" placeholder="0,00" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Abordagem completa</div>
+                            <div class="subitem-max">Máximo: 0,5</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_cont_abord" class="decimal-input" placeholder="0,00" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Foco</div>
+                            <div class="subitem-max">Máximo: 0,5</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_cont_foco" class="decimal-input" placeholder="0,00" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Atualização (Plus)</div>
+                            <div class="subitem-max">Máximo: 0,5</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_cont_atual" class="decimal-input" placeholder="0,00" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                </div>
+
+                <!-- POSTURA -->
+                <div class="criteria-category">
+                    <h3>POSTURA <span>Máx 1.0</span></h3>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Cordialidade</div>
+                            <div class="subitem-max">Máximo: 0,2</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_pos_cord" class="decimal-input" placeholder="0,00" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Vestimenta</div>
+                            <div class="subitem-max">Máximo: 0,2</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_pos_vest" class="decimal-input" placeholder="0,00" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Vocabulário</div>
+                            <div class="subitem-max">Máximo: 0,2</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_pos_vocab" class="decimal-input" placeholder="0,00" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Linguagem corporal</div>
+                            <div class="subitem-max">Máximo: 0,2</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_pos_corpo" class="decimal-input" placeholder="0,00" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Oratória</div>
+                            <div class="subitem-max">Máximo: 0,2</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_pos_orat" class="decimal-input" placeholder="0,00" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                </div>
+
+                <!-- ENTREVISTA -->
+                <div class="criteria-category">
+                    <h3>ENTREVISTA <span>Máx 4.5</span></h3>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Perguntas</div>
+                            <div class="subitem-max">Máximo: 1,0</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_ent_perg" class="decimal-input" placeholder="0,0" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Disponibilidade</div>
+                            <div class="subitem-max">Máximo: 1,0</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_ent_disp" class="decimal-input" placeholder="0,0" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Pró-atividade</div>
+                            <div class="subitem-max">Máximo: 1,5</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_ent_proat" class="decimal-input" placeholder="0,0" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Tempo</div>
+                            <div class="subitem-max">Máximo: 1,0</div>
+                        </div>
+                        <div class="subitem-input"><input type="text" id="score_ent_tempo" class="decimal-input" placeholder="0,0" oninput="formatDecimalInput(this)"></div>
+                    </div>
+                </div>
+
+                <!-- PENALIDADE -->
+                <div class="penalty-box">
+                    <div class="penalty-label">
+                        <h4>Desrespeito com a Banca</h4>
+                        <p>Aplica uma penalidade direta de -1,0 ponto</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="score_penalty_respeito">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div style="margin-top: 25px;">
+                    <button class="btn btn-secondary" onclick="submitEvaluation()">✓ Finalizar Avaliação</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TELA: ADMINISTRADOR -->
+        <section id="view-admin" class="view-section">
+            <div class="card card-accent">
+                <h2>Importar Lista da Planilha (Copia e Cola)</h2>
+                <p style="font-size: 0.85rem; color: #555; margin-bottom: 12px;">
+                    Cole as colunas da planilha. Formato: <strong>Nome [Tabulação] Acertos (0 a 50)</strong>.
+                </p>
+                <div class="form-group">
+                    <label for="admin-bulk-paste">Cole as células da Planilha:</label>
+                    <textarea id="admin-bulk-paste" rows="6" placeholder="Exemplo:&#10;Candidato Exemplo Alfa&#9;42"></textarea>
+                </div>
+                <button class="btn btn-secondary" onclick="importBulkCandidates()">Processar e Importar para a Nuvem</button>
+            </div>
+
+            <div class="card">
+                <h2>Cadastrar Candidato Individual</h2>
+                <div class="form-group">
+                    <label for="admin-cand-name">Nome do Candidato</label>
+                    <input type="text" id="admin-cand-name" placeholder="Nome Completo">
+                </div>
+                <div class="form-group">
+                    <label for="admin-cand-theory">Número de Acertos (0 a 50 questões)</label>
+                    <input type="number" id="admin-cand-theory" min="0" max="50" placeholder="Ex: 40" oninput="updateAdminNotePreview(this.value)">
+                    <div id="admin-note-preview-el" class="note-preview">Nota convertida para peso 10.25: 0,000</div>
+                </div>
+                <button class="btn" onclick="addCandidate()">Adicionar Candidato</button>
+            </div>
+
+            <div class="card card-green">
+                <h2>Lista de Candidatos na Nuvem</h2>
+                <div id="admin-candidates-render" style="max-height: 250px; overflow-y: auto;"></div>
+            </div>
+            
+            <div class="card" style="border-left-color: var(--danger-color);">
+                <h2>Controle Geral do Ciclo / Próximos Anos</h2>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="btn btn-outline" style="color: var(--danger-color); border-color: var(--danger-color);" onclick="resetCompleteSystemForNextYear()">⚠️ RESETAR BANCO DE DADOS NUVEM</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TELA: RESULTADOS / RANKING COMPLETO -->
+        <section id="view-results" class="view-section">
+            <div class="card card-green" style="max-width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                    <h2>Classificação Geral com Notas Individuais</h2>
+                    <button class="btn btn-secondary" style="width: auto; padding: 8px 15px; font-size: 0.85rem;" onclick="exportProcessToExcelXLSX()">📥 Exportar Planilha Auditoria (.XLSX)</button>
+                </div>
+                <!-- Rolagem horizontal liberada para auditoria completa à direita -->
+                <div style="overflow-x: auto; width: 100%;">
+                    <table id="main-results-table">
+                        <thead>
+                            <tr id="table-header-row">
+                                <th style="position: sticky; left: 0; background-color: var(--primary-color); z-index: 2;">Pos</th>
+                                <th style="position: sticky; left: 40px; background-color: var(--primary-color); z-index: 2;">Candidato</th>
+                                <th style="text-align: center;">Acertos (0-50)</th>
+                                <th style="text-align: center;">Nota Teórica</th>
+                                <th style="text-align: center;">Apres. (Média)</th>
+                                <th style="text-align: center; background-color: var(--secondary-color);">Nota Final</th>
+                                <!-- 10 Colunas Extras injetadas via JS à direita -->
+                            </tr>
+                        </thead>
+                        <tbody id="results-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="handleProtectedNavigation('view-evaluation', this)">
+            <div class="nav-icon">📝</div>
+            <div>Avaliação</div>
+        </button>
+        <button class="nav-item" onclick="handleProtectedNavigation('view-results', this)">
+            <div class="nav-icon">🏆</div>
+            <div>Resultados</div>
+        </button>
+        <button class="nav-item" onclick="handleProtectedNavigation('view-admin', this)">
+            <div class="nav-icon">⚙️</div>
+            <div>Painel Admin</div>
+        </button>
+    </nav>
+
+    <script>
+        // ================= CONFIGURAÇÃO DO SUPABASE (COLE SUAS CHAVES AQUI) =================
+        const SUPABASE_URL = "https://SEU_PROJETO.supabase.co";
+        const SUPABASE_ANON_KEY = "SUA_CHAVE_ANON_AQUI";
+        
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let currentEvaluator = localStorage.getItem("alfa_evaluator") || "";
+        let allCandidatesGlobal = [];
+        let allEvaluationsGlobal = [];
+        
+        const MASTER_PASSWORD = "lucasobonito";
+        let pendingTargetView = "";
+        let pendingNavBtn = null;
+
+        function initApp() {
+            checkEvaluatorIdentity();
+            loadDataFromSupabase();
+            setupRealtimeSubscriptions();
+        }
+
+        function updateOnlineStatus(isOnline) {
+            const statusEl = document.getElementById("online-status");
+            if (isOnline) {
+                statusEl.textContent = "Nuvem Ativa Realtime";
+                statusEl.style.backgroundColor = "var(--secondary-color)";
+            } else {
+                statusEl.textContent = "Erro de Conexão";
+                statusEl.style.backgroundColor = "var(--danger-color)";
+            }
+        }
+
+        function formatDecimalInput(inputEl) {
+            let val = inputEl.value;
+            val = val.replace('.', ',');
+            val = val.replace(/[^0-9,]/g, '');
+            const parts = val.split(',');
+            if(parts.length > 2) val = parts[0] + ',' + parts[1];
+            if(parts[1] && parts[1].length > 2) val = parts[0] + ',' + parts[1].slice(0, 2);
+            inputEl.value = val;
+        }
+
+        function parseInputToFloat(valStr) {
+            if(!valStr) return 0;
+            return parseFloat(valStr.toString().replace(',', '.')) || 0;
+        }
+
+        function updateAdminNotePreview(val) {
+            const questions = parseFloat(val) || 0;
+            const scaled = (questions / 50) * 10.25;
+            document.getElementById("admin-note-preview-el").textContent = `Nota convertida para peso 10.25: ${scaled.toFixed(3).replace('.', ',')}`;
+        }
+
+        function checkEvaluatorIdentity() {
+            if (currentEvaluator) {
+                document.getElementById("view-login").classList.remove("active");
+                document.getElementById("view-evaluation").classList.add("active");
+                document.getElementById("evaluator-profile-banner").style.display = "flex";
+                document.getElementById("current-evaluator-name").textContent = currentEvaluator;
+                setActiveNav(0);
+            } else {
+                switchView('view-login', null);
+                document.getElementById("evaluator-profile-banner").style.display = "none";
+            }
+        }
+
+        function saveEvaluatorIdentity() {
+            const customVal = document.getElementById("login-evaluator-custom").value.trim();
+            if (!customVal) return alert("Por favor, digite o seu nome.");
+            currentEvaluator = customVal;
+            localStorage.setItem("alfa_evaluator", customVal);
+            checkEvaluatorIdentity();
+            loadDataFromSupabase();
+        }
+
+        function clearEvaluator() {
+            if(confirm("Deseja alterar o nome do avaliador logado?")) {
+                localStorage.removeItem("alfa_evaluator");
+                currentEvaluator = "";
+                checkEvaluatorIdentity();
+            }
+        }
+
+        function handleProtectedNavigation(targetViewId, navBtn) {
+            if (!currentEvaluator) {
+                switchView('view-login', null);
+                return;
+            }
+            if (targetViewId === 'view-results' || targetViewId === 'view-admin') {
+                pendingTargetView = targetViewId;
+                pendingNavBtn = navBtn;
+                document.getElementById("admin-auth-password").value = "";
+                switchView('view-auth', null);
+            } else {
+                switchView(targetViewId, navBtn);
+            }
+        }
+
+        function verifyAdminPassword() {
+            if (document.getElementById("admin-auth-password").value === MASTER_PASSWORD) {
+                const target = pendingTargetView;
+                const btn = pendingNavBtn;
+                pendingTargetView = ""; pendingNavBtn = null;
+                switchView(target, btn);
+                if (target === 'view-results') refreshRankings();
+            } else {
+                alert("Senha incorreta!");
+                document.getElementById("admin-auth-password").value = "";
+                switchView('view-evaluation', document.querySelectorAll(".nav-item")[0]);
+            }
+        }
+
+        function switchView(viewId, navBtn) {
+            document.querySelectorAll(".view-section").forEach(v => v.classList.remove("active"));
+            document.getElementById(viewId).classList.add("active");
+            if (navBtn) {
+                document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
+                navBtn.classList.add("active");
+            }
+        }
+
+        function setActiveNav(index) {
+            const items = document.querySelectorAll(".nav-item");
+            items.forEach(item => item.classList.remove("active"));
+            if(items[index]) items[index].classList.add("active");
+        }
+
+        // ================= CONEXÃO DE DADOS COM O SERVIDOR (SUPABASE NUVEM) =================
+        async function loadDataFromSupabase() {
+            try {
+                const resCand = await _supabase.from('candidatos').select('*');
+                if(resCand.error) throw resCand.error;
+                
+                allCandidatesGlobal = resCand.data || [];
+                allCandidatesGlobal.sort((a,b) => (b.theory_questions - a.theory_questions));
+                allCandidatesGlobal.forEach((cand, idx) => { cand.top30 = (idx < 30); });
+
+                const resEval = await _supabase.from('avaliacoes').select('*');
+                if(resEval.error) throw resEval.error;
+
+                allEvaluationsGlobal = resEval.data || [];
+                
+                populateCandidateDropdowns();
+                renderAdminCandidates();
+                updateOnlineStatus(true);
+                if(document.getElementById("view-results").classList.contains("active")) {
+                    refreshRankings();
+                }
+            } catch (err) {
+                console.error(err);
+                updateOnlineStatus(false);
+            }
+        }
+
+        function setupRealtimeSubscriptions() {
+            _supabase.channel('schema-db-changes')
+                .on('postgres_changes', { event: '*', filter: 'schema=public' }, () => {
+                    loadDataFromSupabase();
+                }).subscribe();
+        }
+
+        function populateCandidateDropdowns() {
+            const select = document.getElementById("eval-candidate-select");
+            select.innerHTML = '<option value="">-- Selecione o candidato --</option>';
+            
+            allCandidatesGlobal.filter(c => c.top30).forEach(c => {
+                const alreadyEvaluatedByMe = allEvaluationsGlobal.some(e => e.candidate_id === c.id && e.evaluator.toLowerCase().trim() === currentEvaluator.toLowerCase().trim());
+                if (!alreadyEvaluatedByMe) {
+                    const opt = document.createElement("option");
+                    opt.value = c.id;
+                    opt.textContent = c.name;
+                    select.appendChild(opt);
+                }
+            });
+
+            select.onchange = function() {
+                const form = document.getElementById("evaluation-form-container");
+                if (this.value) {
+                    form.style.display = "block";
+                    loadExistingEvaluation(this.value);
+                } else {
+                    form.style.display = "none";
+                }
+            };
+        }
+
+        function filterCandidateDropdown() {
+            const searchVal = document.getElementById("eval-candidate-search").value.toLowerCase();
+            const options = document.getElementById("eval-candidate-select").options;
+            for (let i = 1; i < options.length; i++) {
+                options[i].style.display = options[i].text.toLowerCase().includes(searchVal) ? "" : "none";
+            }
+        }
+
+        function loadExistingEvaluation(candidateId) {
+            const existing = allEvaluationsGlobal.find(e => e.candidate_id == candidateId && e.evaluator.toLowerCase().trim() === currentEvaluator.toLowerCase().trim());
+            document.querySelectorAll("#evaluation-form-container .decimal-input").forEach(i => i.value = "");
+            document.getElementById("score_penalty_respeito").checked = false;
+
+            if (existing) {
+                Object.keys(existing).forEach(key => {
+                    if (document.getElementById(key)) {
+                        document.getElementById(key).value = existing[key].toString().replace('.', ',');
+                    }
+                });
+                document.getElementById("score_penalty_respeito").checked = existing.penalty_respeito;
+            }
+        }
+
+        async function addCandidate() {
+            const name = document.getElementById("admin-cand-name").value.trim();
+            const questions = parseFloat(document.getElementById("admin-cand-theory").value);
+            if (!name || isNaN(questions) || questions < 0 || questions > 50) return alert("Insira dados válidos.");
+
+            const { error } = await _supabase.from('candidatos').insert([{ name, theory_questions: questions }]);
+            if (error) alert("Erro ao salvar na nuvem: " + error.message);
+            else {
+                document.getElementById("admin-cand-name").value = "";
+                document.getElementById("admin-cand-theory").value = "";
+                showVisualFeedback();
+                loadDataFromSupabase();
+            }
+        }
+
+        async function importBulkCandidates() {
+            const rawText = document.getElementById("admin-bulk-paste").value.trim();
+            if(!rawText) return alert("Cole dados válidos da planilha primeiro.");
+
+            const lines = rawText.split(/\r?\n/);
+            let candidatesToInsert = [];
+
+            lines.forEach(line => {
+                if(!line.trim()) return;
+                let parts = line.split(/\t|;/);
+                let name = parts[0].trim();
+                let questions = 0;
+                
+                if(parts.length > 1) questions = parseFloat(parts[1].replace(",", ".")) || 0;
+                if(questions < 0) questions = 0;
+                if(questions > 50) questions = 50;
+
+                if(name.length > 1) {
+                    candidatesToInsert.push({ name: name, theory_questions: questions });
+                }
+            });
+
+            const { error } = await _supabase.from('candidatos').insert(candidatesToInsert);
+            if(error) alert("Erro na inserção: " + error.message);
+            else {
+                document.getElementById("admin-bulk-paste").value = "";
+                alert(`${candidatesToInsert.length} candidatos sincronizados em rede!`);
+                showVisualFeedback();
+                loadDataFromSupabase();
+            }
+        }
+
+        function renderAdminCandidates() {
+            const container = document.getElementById("admin-candidates-render");
+            container.innerHTML = allCandidatesGlobal.length === 0 ? "<p style='color:#999; font-size:0.9rem; padding: 10px;'>Nenhum candidato.</p>" : "";
+            allCandidatesGlobal.forEach((c, idx) => {
+                const scaledScore = (c.theory_questions / 50) * 10.25;
+                const div = document.createElement("div");
+                div.className = "candidate-list-item";
+                div.innerHTML = `<div><strong>${c.name}</strong><div>Acertos: ${c.theory_questions} (Nota: ${scaledScore.toFixed(3).replace('.', ',')})</div></div>
+                    <span class="phase-badge ${c.top30 ? 'phase-30':'phase-out'}">${c.top30 ? 'Top 30 (Fase 2)':'Fase 1'}</span>`;
+                container.appendChild(div);
+            });
+        }
+
+        async function submitEvaluation() {
+            const candidateId = parseInt(document.getElementById("eval-candidate-select").value);
+            if (!candidateId) return alert("Selecione um candidato.");
+
+            const inputs = document.querySelectorAll("#evaluation-form-container .decimal-input");
+            const scores = {};
+            let failed = false;
+
+            inputs.forEach(input => {
+                const val = parseInputToFloat(input.value);
+                const max = parseFloat(input.parentNode.parentNode.querySelector('.subitem-max').textContent.replace(/[^0-9,.]/g, '').replace(',', '.'));
+                if (val < 0 || val > max) { 
+                    failed = true; 
+                    alert(`Nota inválida no item "${input.parentNode.parentNode.querySelector('.subitem-title').textContent}".`); 
+                    input.focus(); 
+                }
+                scores[input.id] = parseFloat(val.toFixed(2));
+            });
+            if (failed) return;
+
+            const evalPayload = {
+                candidate_id: candidateId,
+                evaluator: currentEvaluator,
+                penalty_respeito: document.getElementById("score_penalty_respeito").checked,
+                ...scores
+            };
+
+            // Tenta dar update se já existir (auditoria), ou insere um novo
+            const existing = allEvaluationsGlobal.find(e => e.candidate_id == candidateId && e.evaluator.toLowerCase().trim() === currentEvaluator.toLowerCase().trim());
+            
+            let result;
+            if(existing) {
+                result = await _supabase.from('avaliacoes').update(evalPayload).eq('id', existing.id);
+            } else {
+                result = await _supabase.from('avaliacoes').insert([evalPayload]);
+            }
+
+            if(result.error) alert("Erro de rede Supabase: " + result.error.message);
+            else {
+                showVisualFeedback();
+                alert("Avaliação transmitida em tempo real!");
+                document.getElementById("evaluation-form-container").style.display = "none";
+                document.getElementById("eval-candidate-select").value = "";
+                document.getElementById("eval-candidate-search").value = "";
+                loadDataFromSupabase();
+            }
+        }
+
+        function getSingleBancaTotalFromDBRow(e) {
+            if(!e) return 0;
+            const criteriaKeys = [
+                'score_org_apres', 'score_org_racio', 'score_org_compre', 'score_cri_art', 'score_cri_inov',
+                'score_met_ensino', 'score_cont_dom', 'score_cont_abord', 'score_cont_foco', 'score_cont_atual',
+                'score_pos_cord', 'score_pos_vest', 'score_pos_vocab', 'score_pos_corpo', 'score_pos_orat',
+                'score_ent_perg', 'score_ent_disp', 'score_ent_proat', 'score_ent_tempo'
+            ];
+            let sum = 0;
+            criteriaKeys.forEach(k => { sum += parseFloat(e[k]) || 0; });
+            if(e.penalty_respeito) sum -= 1.0;
+            return Math.max(0, sum);
+        }
+
+        function calculateScoresForCandidate(candidateId) {
+            const evals = allEvaluationsGlobal.filter(e => e.candidate_id == candidateId);
+            if (evals.length === 0) return 0;
+
+            const criteriaKeys = [
+                'score_org_apres', 'score_org_racio', 'score_org_compre', 'score_cri_art', 'score_cri_inov',
+                'score_met_ensino', 'score_cont_dom', 'score_cont_abord', 'score_cont_foco', 'score_cont_atual',
+                'score_pos_cord', 'score_pos_vest', 'score_pos_vocab', 'score_pos_corpo', 'score_pos_orat',
+                'score_ent_perg', 'score_ent_disp', 'score_ent_proat', 'score_ent_tempo'
+            ];
+
+            let sumOfCriteriaMeans = 0;
+            criteriaKeys.forEach(key => {
+                let s = evals.map(e => parseFloat(e[key]) || 0);
+                if (s.length >= 10) {
+                    s.sort((a, b) => a - b);
+                    s.pop(); s.shift();
+                    sumOfCriteriaMeans += (s.reduce((a, b) => a + b, 0) / s.length);
+                } else {
+                    sumOfCriteriaMeans += (s.reduce((a, b) => a + b, 0) / s.length);
+                }
+            });
+
+            let penalties = evals.map(e => e.penalty_respeito ? -1.0 : 0.0);
+            let pMean = 0;
+            if (penalties.length >= 10) {
+                penalties.sort((a,b) => a - b);
+                penalties.pop(); penalties.shift();
+                pMean = penalties.reduce((a,b) => a+b, 0) / penalties.length;
+            } else if (penalties.length > 0) {
+                pMean = penalties.reduce((a,b) => a+b, 0) / penalties.length;
+            }
+
+            return Math.max(0, sumOfCriteriaMeans + pMean);
+        }
+
+        // ================= ATUALIZAÇÃO EXCLUSIVA: MONTA O RANKING EM TELA COM AS NOTAS INDIVIDUAIS À DIREITA =================
+        function refreshRankings() {
+            const headerRow = document.getElementById("table-header-row");
+            const tbody = document.getElementById("results-table-body");
+            
+            // Resetar cabeçalho mantendo apenas as 6 colunas padrão fixas
+            headerRow.innerHTML = `
+                <th style="position: sticky; left: 0; background-color: var(--primary-color); z-index: 3;">Pos</th>
+                <th style="position: sticky; left: 40px; background-color: var(--primary-color); z-index: 3;">Candidato</th>
+                <th style="text-align: center;">Acertos (0-50)</th>
+                <th style="text-align: center;">Nota Teórica</th>
+                <th style="text-align: center;">Apres. (Média)</th>
+                <th style="text-align: center; background-color: var(--secondary-color);">Nota Final</th>
+            `;
+            
+            // Injeta os cabeçalhos textuais das 10 Bancas na visualização de tela
+            for(let i = 1; i <= 10; i++) {
+                let th = document.createElement("th");
+                th.textContent = `Banca ${i}`;
+                th.style.textAlign = "center";
+                headerRow.appendChild(th);
+            }
+
+            tbody.innerHTML = "";
+            
+            const list = allCandidatesGlobal.map(c => {
+                const scaledTheory = (c.theory_questions / 50) * 10.25;
+                const presentation = calculateScoresForCandidate(c.id);
+                return { 
+                    ...c, 
+                    scaled_theory: scaledTheory,
+                    presentation_score: presentation, 
+                    final_score: (scaledTheory + presentation) / 2,
+                    votes: allEvaluationsGlobal.filter(e => e.candidate_id == c.id).length 
+                };
+            }).sort((a, b) => b.final_score - a.final_score);
+
+            list.forEach((c, idx) => {
+                const tr = document.createElement("tr");
+                if(!c.top30) tr.style.opacity = "0.4";
+
+                // Inserir colunas estruturais base fixadas
+                let rowHTML = `
+                    <td style="text-align:center; position: sticky; left: 0; background-color: #fff; z-index: 1;"><span class="rank-badge">${idx + 1}</span></td>
+                    <td style="position: sticky; left: 40px; background-color: #fff; z-index: 1;">
+                        <strong>${c.name}</strong>
+                        <div style="font-size:0.75rem; color:#777;">${c.votes} de 10 diretores</div>
+                    </td>
+                    <td style="text-align:center;">${c.theory_questions}</td>
+                    <td style="text-align:center;">${c.scaled_theory.toFixed(2).replace('.', ',')}</td>
+                    <td style="text-align:center;">${c.presentation_score.toFixed(2).replace('.', ',')}</td>
+                    <td style="text-align:center; font-weight:bold; color:var(--primary-color);">${c.final_score.toFixed(3).replace('.', ',')}</td>
+                `;
+
+                // Captura notas individuais para realizar marcação de corte em tela
+                let evalsForThisCand = allEvaluationsGlobal.filter(e => e.candidate_id === c.id);
+                let bancaTotals = evalsForThisCand.map(e => ({
+                    evaluator: e.evaluator,
+                    total: getSingleBancaTotalFromDBRow(e)
+                }));
+
+                let maxVal = -1; let minVal = 999;
+                if(bancaTotals.length >= 10) {
+                    let sortedTotals = bancaTotals.map(b => b.total).sort((a,b) => a - b);
+                    minVal = sortedTotals[0];
+                    maxVal = sortedTotals[sortedTotals.length - 1];
+                }
+
+                // Loop para renderizar as colunas das 10 bancas à direita em tempo real na tela
+                for(let i = 0; i < 10; i++) {
+                    if(bancaTotals[i]) {
+                        let totalValue = bancaTotals[i].total;
+                        let cellContent = `${totalValue.toFixed(2).replace('.', ',')}<br><small style="color:#666">${bancaTotals[i].evaluator}</small>`;
+                        
+                        if(bancaTotals.length >= 10) {
+                            if(totalValue === minVal) {
+                                cellContent += ` <br><span class="badge-cut-min">MIN (CORTADA)</span>`;
+                                minVal = -99;
+                            } else if(totalValue === maxVal) {
+                                cellContent += ` <br><span class="badge-cut-max">MAX (CORTADA)</span>`;
+                                maxVal = 999;
+                            }
+                        }
+                        rowHTML += `<td style="text-align:center; font-size:0.85rem; border-left: 1px solid #f0e6ec;">${cellContent}</td>`;
+                    } else {
+                        rowHTML += `<td style="text-align:center; color:#ccc; border-left: 1px solid #f0e6ec;">-</td>`;
+                    }
+                }
+
+                tr.innerHTML = rowHTML;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ================= GERADOR DE BACKUP EXCEL .XLSX COM AS NOTAS CORTADAS =================
+        function exportProcessToExcelXLSX() {
+            let dataMatrix = [];
+            let headerRow = ["Classificação", "Nome do Candidato", "Acertos Prova (0-50)", "Nota Teórica (10.25)", "Nota Apresentação (Banca)", "Nota Final Ponderada", "Status"];
+            for(let i = 1; i <= 10; i++) { headerRow.push(`Banca ${i} (Nota Bruta)`); }
+            dataMatrix.push(headerRow);
+
+            const list = allCandidatesGlobal.map(c => {
+                const scaledTheory = (c.theory_questions / 50) * 10.25;
+                const presentation = calculateScoresForCandidate(c.id);
+                return { ...c, scaled_theory: scaledTheory, presentation_score: presentation, final_score: (scaledTheory + presentation) / 2 };
+            }).sort((a, b) => b.final_score - a.final_score);
+
+            list.forEach((c, idx) => {
+                const statusStr = c.top30 ? "Top 30 - Segunda Fase" : "Fase 1";
+                let rowData = [idx + 1, c.name, c.theory_questions, parseFloat(c.scaled_theory.toFixed(3)), parseFloat(c.presentation_score.toFixed(3)), parseFloat(c.final_score.toFixed(3)), statusStr];
+                
+                let evalsForThisCand = allEvaluationsGlobal.filter(e => e.candidate_id === c.id);
+                let bancaTotals = evalsForThisCand.map(e => ({ evaluator: e.evaluator, total: getSingleBancaTotalFromDBRow(e) }));
+
+                let maxVal = -1; let minVal = 999;
+                if(bancaTotals.length >= 10) {
+                    let sortedTotals = bancaTotals.map(b => b.total).sort((a,b) => a - b);
+                    minVal = sortedTotals[0]; maxVal = sortedTotals[sortedTotals.length - 1];
+                }
+
+                for(let i = 0; i < 10; i++) {
+                    if(bancaTotals[i]) {
+                        let currentTotal = bancaTotals[i].total;
+                        let cellText = `${bancaTotals[i].evaluator}: ${currentTotal.toFixed(2).replace('.', ',')}`;
+                        if(bancaTotals.length >= 10) {
+                            if(currentTotal === minVal) { cellText += " [CORTADA - MIN]"; minVal = -99; } 
+                            else if(currentTotal === maxVal) { cellText += " [CORTADA - MAX]"; maxVal = 999; }
+                        }
+                        rowData.push(cellText);
+                    } else { rowData.push("-"); }
+                }
+                dataMatrix.push(rowData);
+            });
+
+            let wb = XLSX.utils.book_new();
+            let ws = XLSX.utils.aoa_to_sheet(dataMatrix);
+            XLSX.utils.book_append_sheet(wb, ws, "Resultado Final");
+            XLSX.writeFile(wb, `PROCESSO_SELETIVO_ALFA_NUVEM_${new Date().getFullYear()}.xlsx`);
+        }
+
+        async function resetCompleteSystemForNextYear() {
+            if(confirm("⚠️ PERIGO: Você vai apagar permanentemente TODAS as tabelas do SUPABASE na nuvem. Tem certeza?")) {
+                const { error: e1 } = await _supabase.from('avaliacoes').delete().neq('id', 0);
+                const { error: e2 } = await _supabase.from('candidatos').delete().neq('id', 0);
+                if(!e1 && !e2) {
+                    alert("Banco de dados em nuvem limpo com sucesso!");
+                    loadDataFromSupabase();
+                } else {
+                    alert("Erro ao limpar dados na nuvem.");
+                }
+            }
+        }
+
+        function showVisualFeedback() {
+            document.getElementById("sync-status-msg").style.display = "flex";
+            setTimeout(() => { document.getElementById("sync-status-msg").style.display = "none"; }, 3000);
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>            color: var(--text-dark);
             padding-bottom: 80px;
         }
 
