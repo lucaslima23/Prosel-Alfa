@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processo Seletivo - ALFA V2</title>
+    <meta name="theme-color" content="#5c1d43">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    
+    <style>
+        :root {
+            --primary-color: #5c1d43; /* Vinho/Roxo do logo */
+            --secondary-color: #0d8243; /* Verde do logo */
+            --accent-color: #f7d117; /* Amarelo do logo */
+            --text-dark: #1f121a;
+            --bg-light: #fdfafb;
+            --card-bg: #ffffff;
+            --border-color: #e0d0d8;
+            --danger-color: #d93838;
+            --success-color: #28a745;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            padding-bottom: 80px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), #3d102b);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        header p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-top: 3px;
+        }
+
+        .badge-status {
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(92, 29, 67, 0.05);
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .card-green {
+            border-left-color: var(--secondary-color);
+        }
+
+        .card-accent {
+            border-left-color: var(--accent-color);
+        }
+
+        h2 {
+            font-size: 1.15rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            border-bottom: 2px solid #f3eff2;
+            padding-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #4a3440;
+        }
+
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #fff;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary-color);
+        }
+
+        .note-preview {
+            display: inline-block;
+            margin-top: 6px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+            background-color: #eaf6ed;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: filter 0.2s;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn:active {
+            filter: brightness(0.9);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            box-shadow: none;
+        }
+
+        .criteria-category {
+            background: #fdfbfc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        .criteria-category h3 {
+            font-size: 0.95rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .subitem-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #efe9ec;
+        }
+
+        .subitem-row:last-child {
+            border-bottom: none;
+        }
+
+        .subitem-info {
+            flex: 1;
+            padding-right: 10px;
+        }
+
+        .subitem-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .subitem-max {
+            font-size: 0.75rem;
+            color: #8c7380;
+        }
+
+        .subitem-input {
+            width: 75px;
+        }
+
+        .subitem-input input {
+            text-align: center;
+            padding: 8px;
+        }
+
+        .penalty-box {
+            background-color: #fff0f0;
+            border: 1px solid #ffcccc;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .penalty-label h4 {
+            color: var(--danger-color);
+            font-size: 0.95rem;
+        }
+
+        .penalty-label p {
+            font-size: 0.75rem;
+            color: #664444;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--danger-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            text-align: left;
+            padding: 10px;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #f0e6ec;
+        }
+
+        tr:nth-child(even) {
+            background-color: #faf6f8;
+        }
+
+        .rank-badge {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        tr:nth-child(1) .rank-badge { background-color: var(--accent-color); color: var(--primary-color); }
+        tr:nth-child(2) .rank-badge { background-color: #e0e0e0; color: #333; }
+        tr:nth-child(3) .rank-badge { background-color: #cd7f32; color: white; }
+
+        .sync-bar {
+            background-color: #eaf6ed;
+            color: var(--secondary-color);
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        nav.bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: white;
+            display: flex;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+            z-index: 100;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #8c7380;
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .nav-icon {
+            font-size: 1.2rem;
+            margin-bottom: 2px;
+        }
+
+        .candidate-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #f0e6ec;
+        }
+
+        .candidate-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .phase-badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .phase-30 { background-color: #e3fcef; color: #00875a; }
+        .phase-out { background-color: #ffebe6; color: #de350b; }
+
+        .evaluator-banner {
+            background-color: #f0e6ec;
+            padding: 8px 15px;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+        }
+
+        .change-evaluator-btn {
+            color: var(--primary-color);
+            text-decoration: underline;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 480px) {
+            header h1 { font-size: 1.1rem; }
+            .card { padding: 15px; }
+            .subitem-input { width: 65px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Processo Seletivo ALFA</h1>
+        <p>Liga de Emergências Médicas e Trauma</p>
+        <div id="online-status" class="badge-status">Modo Local (PWA)</div>
+    </header>
+
+    <div id="evaluator-profile-banner" class="evaluator-banner" style="display:none;">
+        <span>Avaliador(a): <strong id="current-evaluator-name">-</strong></span>
+        <button class="change-evaluator-btn" onclick="clearEvaluator()">Trocar</button>
+    </div>
+
+    <main>
+        <div id="sync-status-msg" class="sync-bar" style="display:none;">
+            ✓ Dados salvos localmente e seguros
+        </div>
+
+        <!-- TELA: LOGIN -->
+        <section id="view-login" class="view-section active">
+            <div class="card">
+                <h2>Identificação do Diretor / Avaliador</h2>
+                <p style="font-size: 0.9rem; margin-bottom: 15px; color: #666;">
+                    Selecione ou insira seu nome para começar a lançar avaliações.
+                </p>
+                <div class="form-group">
+                    <label for="login-evaluator-select">Selecione seu Nome</label>
+                    <select id="login-evaluator-select">
+                        <option value="">-- Escolha um Diretor --</option>
+                        <option value="Diretor 1">Diretor 1</option>
+                        <option value="Diretor 2">Diretor 2</option>
+                        <option value="Diretor 3">Diretor 3</option>
+                        <option value="Diretor 4">Diretor 4</option>
+                        <option value="Diretor 5">Diretor 5</option>
+                        <option value="Diretor 6">Diretor 6</option>
+                        <option value="Diretor 7">Diretor 7</option>
+                        <option value="Diretor 8">Diretor 8</option>
+                        <option value="Diretor 9">Diretor 9</option>
+                        <option value="Diretor 10">Diretor 10</option>
+                    </select>
+                </div>
+                <div class="form-group" style="text-align: center; margin: 10px 0; color: #888; font-size: 0.85rem;">OU</div>
+                <div class="form-group">
+                    <label for="login-evaluator-custom">Nome Completo</label>
+                    <input type="text" id="login-evaluator-custom" placeholder="Digite seu nome">
+                </div>
+                <button class="btn" onclick="saveEvaluatorIdentity()">Entrar no Sistema</button>
+            </div>
+        </section>
+
+        <!-- TELA: AVALIAÇÃO -->
+        <section id="view-evaluation" class="view-section">
+            <div class="card">
+                <h2>Lançar Notas da Apresentação</h2>
+                <div class="form-group">
+                    <label for="eval-candidate-search">Buscar Candidato (Top 30)</label>
+                    <input type="text" id="eval-candidate-search" placeholder="🔍 Digite para pesquisar..." oninput="filterCandidateDropdown()">
+                </div>
+                <div class="form-group">
+                    <label for="eval-candidate-select">Candidato Selecionado</label>
+                    <select id="eval-candidate-select">
+                        <option value="">-- Selecione o candidato --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="evaluation-form-container" style="display:none;">
+                <!-- ORGANIZAÇÃO -->
+                <div class="criteria-category">
+                    <h3>ORGANIZAÇÃO <span>Máx 1.5</span></h3>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Apresentação</div>
+                            <div class="subitem-max">Máximo: 0.5</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_org_apres" step="0.05" min="0" max="0.5" value="0"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Linha de raciocínio</div>
+                            <div class="subitem-max">Máximo: 0.5</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_org_racio" step="0.05" min="0" max="0.5" value="0"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Compreensão</div>
+                            <div class="subitem-max">Máximo: 0.5</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_org_compre" step="0.05" min="0" max="0.5" value="0"></div>
+                    </div>
+                </div>
+
+                <!-- CRIATIVIDADE -->
+                <div class="criteria-category">
+                    <h3>CRIATIVIDADE <span>Máx 1.0</span></h3>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Artístico</div>
+                            <div class="subitem-max">Máximo: 0.5</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_cri_art" step="0.05" min="0" max="0.5" value="0"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Inovação</div>
+                            <div class="subitem-max">Máximo: 0.5</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_cri_inov" step="0.05" min="0" max="0.5" value="0"></div>
+                    </div>
+                </div>
+
+                <!-- METODOLOGIA ALEATÓRIA -->
+                <div class="criteria-category">
+                    <h3>METODOLOGIA ALEATÓRIA <span>Máx 0.25</span></h3>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Ensinou?</div>
+                            <div class="subitem-max">Máximo: 0.25</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_met_ensino" step="0.05" min="0" max="0.25" value="0"></div>
+                    </div>
+                </div>
+
+                <!-- CONTEÚDO -->
+                <div class="criteria-category">
+                    <h3>CONTEÚDO <span>Máx 2.0</span></h3>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Domínio</div>
+                            <div class="subitem-max">Máximo: 0.5</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_cont_dom" step="0.05" min="0" max="0.5" value="0"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Abordagem completa</div>
+                            <div class="subitem-max">Máximo: 0.5</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_cont_abord" step="0.05" min="0" max="0.5" value="0"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Foco</div>
+                            <div class="subitem-max">Máximo: 0.5</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_cont_foco" step="0.05" min="0" max="0.5" value="0"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Atualização (Plus)</div>
+                            <div class="subitem-max">Máximo: 0.5</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_cont_atual" step="0.05" min="0" max="0.5" value="0"></div>
+                    </div>
+                </div>
+
+                <!-- POSTURA -->
+                <div class="criteria-category">
+                    <h3>POSTURA <span>Máx 1.0</span></h3>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Cordialidade</div>
+                            <div class="subitem-max">Máximo: 0.2</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_pos_cord" step="0.05" min="0" max="0.2" value="0"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Vestimenta</div>
+                            <div class="subitem-max">Máximo: 0.2</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_pos_vest" step="0.05" min="0" max="0.2" value="0"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Vocabulário</div>
+                            <div class="subitem-max">Máximo: 0.2</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_pos_vocab" step="0.05" min="0" max="0.2" value="0"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Linguagem corporal</div>
+                            <div class="subitem-max">Máximo: 0.2</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_pos_corpo" step="0.05" min="0" max="0.2" value="0"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Oratória</div>
+                            <div class="subitem-max">Máximo: 0.2</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_pos_orat" step="0.05" min="0" max="0.2" value="0"></div>
+                    </div>
+                </div>
+
+                <!-- ENTREVISTA -->
+                <div class="criteria-category">
+                    <h3>ENTREVISTA <span>Máx 4.5</span></h3>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Perguntas</div>
+                            <div class="subitem-max">Máximo: 1.0</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_ent_perg" step="0.1" min="0" max="1.0" value="0"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Disponibilidade</div>
+                            <div class="subitem-max">Máximo: 1.0</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_ent_disp" step="0.1" min="0" max="1.0" value="0"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Pró-atividade</div>
+                            <div class="subitem-max">Máximo: 1.5</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_ent_proat" step="0.1" min="0" max="1.5" value="0"></div>
+                    </div>
+                    <div class="subitem-row">
+                        <div class="subitem-info">
+                            <div class="subitem-title">Tempo</div>
+                            <div class="subitem-max">Máximo: 1.0</div>
+                        </div>
+                        <div class="subitem-input"><input type="number" id="score_ent_tempo" step="0.1" min="0" max="1.0" value="0"></div>
+                    </div>
+                </div>
+
+                <!-- PENALIDADE -->
+                <div class="penalty-box">
+                    <div class="penalty-label">
+                        <h4>Desrespeito com a Banca</h4>
+                        <p>Aplica uma penalidade direta de -1.0 ponto</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="score_penalty_respeito">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div style="margin-top: 25px;">
+                    <button class="btn btn-secondary" onclick="submitEvaluation()">✓ Finalizar Avaliação</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TELA: ADMINISTRADOR -->
+        <section id="view-admin" class="view-section">
+            <div class="card card-accent">
+                <h2>Importar Lista da Planilha (Copia e Cola)</h2>
+                <p style="font-size: 0.85rem; color: #555; margin-bottom: 12px;">
+                    Cole as colunas do Excel/Sheets diretamente. Formato aceito: <strong>Nome [Tabulação] Acertos (0 a 50)</strong>.
+                </p>
+                <div class="form-group">
+                    <label for="admin-bulk-paste">Cole as células aqui:</label>
+                    <textarea id="admin-bulk-paste" rows="6" placeholder="Exemplo:&#10;Lucas Matheus de Sousa Lima&#9;42&#10;Maria Silva Santos&#9;38"></textarea>
+                </div>
+                <button class="btn btn-secondary" onclick="importBulkCandidates()">Processar e Importar Células</button>
+            </div>
+
+            <div class="card">
+                <h2>Cadastrar Candidato Individual</h2>
+                <div class="form-group">
+                    <label for="admin-cand-name">Nome do Candidato</label>
+                    <input type="text" id="admin-cand-name" placeholder="Nome Completo">
+                </div>
+                <div class="form-group">
+                    <label for="admin-cand-theory">Número de Acertos (0 a 50 questões)</label>
+                    <input type="number" id="admin-cand-theory" min="0" max="50" placeholder="Ex: 40" oninput="updateAdminNotePreview(this.value)">
+                    <div id="admin-note-preview-el" class="note-preview">Nota convertida para peso 10.25: 0.000</div>
+                </div>
+                <button class="btn" onclick="addCandidate()">Adicionar Candidato</button>
+            </div>
+
+            <div class="card card-green">
+                <h2>Lista de Candidatos Importados</h2>
+                <div id="admin-candidates-render" style="max-height: 250px; overflow-y: auto;"></div>
+            </div>
+            
+            <div class="card" style="border-left-color: var(--danger-color);">
+                <h2>Controle Geral do Ciclo / Próximos Anos</h2>
+                <p style="font-size: 0.85rem; margin-bottom: 15px; color:#555;">Use o botão abaixo para limpar o sistema para o próximo processo seletivo.</p>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="btn btn-outline" style="color: var(--danger-color); border-color: var(--danger-color);" onclick="resetCompleteSystemForNextYear()">⚠️ RESETAR SISTEMA (Apagar Tudo para Novo Ano)</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TELA: RESULTADOS / RANKING -->
+        <section id="view-results" class="view-section">
+            <div class="card card-green">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                    <h2>Classificação Geral</h2>
+                    <button class="btn btn-secondary" style="width: auto; padding: 8px 15px; font-size: 0.85rem;" onclick="exportProcessToCSV()">📥 Exportar Resultado Oficial (CSV)</button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">Pos</th>
+                                <th>Candidato</th>
+                                <th style="text-align: center;">Acertos (0-50)</th>
+                                <th style="text-align: center;">Nota Teórica (10.25)</th>
+                                <th style="text-align: center;">Apres. (Média)</th>
+                                <th style="text-align: center; background-color: var(--secondary-color);">Nota Final</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="switchView('view-evaluation', this)">
+            <div class="nav-icon">📝</div>
+            <div>Avaliação</div>
+        </button>
+        <button class="nav-item" onclick="switchView('view-results', this); refreshRankings();">
+            <div class="nav-icon">🏆</div>
+            <div>Resultados</div>
+        </button>
+        <button class="nav-item" onclick="switchView('view-admin', this)">
+            <div class="nav-icon">⚙️</div>
+            <div>Painel Admin</div>
+        </button>
+    </nav>
+
+    <script>
+        let db;
+        const dbRequest = indexedDB.open("AlfaProcessoSeletivoDB_V2", 1);
+
+        dbRequest.onupgradeneeded = function(event) {
+            const database = event.target.result;
+            if (!database.objectStoreNames.contains("candidates")) {
+                database.createObjectStore("candidates", { keyPath: "id", autoIncrement: true });
+            }
+            if (!database.objectStoreNames.contains("evaluations")) {
+                database.createObjectStore("evaluations", { keyPath: "id", autoIncrement: true });
+            }
+        };
+
+        dbRequest.onsuccess = function(event) {
+            db = event.target.result;
+            initApp();
+        };
+
+        dbRequest.onerror = function() {
+            alert("Erro fatal ao iniciar banco de dados offline.");
+        };
+
+        let currentEvaluator = localStorage.getItem("alfa_evaluator") || "";
+        let allCandidatesGlobal = [];
+        let allEvaluationsGlobal = [];
+
+        function initApp() {
+            checkEvaluatorIdentity();
+            loadDataFromDB();
+            window.addEventListener('online', updateOnlineStatus);
+            window.addEventListener('offline', updateOnlineStatus);
+            updateOnlineStatus();
+        }
+
+        function updateOnlineStatus() {
+            const statusEl = document.getElementById("online-status");
+            if (navigator.onLine) {
+                statusEl.textContent = "Online / Sincronizado";
+                statusEl.style.backgroundColor = "var(--secondary-color)";
+            } else {
+                statusEl.textContent = "Modo Offline Seguro";
+                statusEl.style.backgroundColor = "var(--danger-color)";
+            }
+        }
+
+        function updateAdminNotePreview(val) {
+            const questions = parseFloat(val) || 0;
+            const scaled = (questions / 50) * 10.25;
+            document.getElementById("admin-note-preview-el").textContent = `Nota convertida para peso 10.25: ${scaled.toFixed(3)}`;
+        }
+
+        function checkEvaluatorIdentity() {
+            if (currentEvaluator) {
+                document.getElementById("view-login").classList.remove("active");
+                document.getElementById("view-evaluation").classList.add("active");
+                document.getElementById("evaluator-profile-banner").style.display = "flex";
+                document.getElementById("current-evaluator-name").textContent = currentEvaluator;
+                setActiveNav(0);
+            } else {
+                switchView('view-login', null);
+                document.getElementById("evaluator-profile-banner").style.display = "none";
+            }
+        }
+
+        function saveEvaluatorIdentity() {
+            const selectVal = document.getElementById("login-evaluator-select").value;
+            const customVal = document.getElementById("login-evaluator-custom").value.trim();
+            const chosen = customVal || selectVal;
+
+            if (!chosen) {
+                alert("Identifique-se para prosseguir.");
+                return;
+            }
+
+            currentEvaluator = chosen;
+            localStorage.setItem("alfa_evaluator", chosen);
+            checkEvaluatorIdentity();
+            loadDataFromDB();
+        }
+
+        function clearEvaluator() {
+            if(confirm("Trocar de avaliador logado?")) {
+                localStorage.removeItem("alfa_evaluator");
+                currentEvaluator = "";
+                checkEvaluatorIdentity();
+            }
+        }
+
+        function switchView(viewId, navBtn) {
+            if (!currentEvaluator && viewId !== 'view-login') viewId = 'view-login';
+            document.querySelectorAll(".view-section").forEach(v => v.classList.remove("active"));
+            document.getElementById(viewId).classList.add("active");
+            if (navBtn) {
+                document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
+                navBtn.classList.add("active");
+            }
+        }
+
+        function setActiveNav(index) {
+            const items = document.querySelectorAll(".nav-item");
+            items.forEach(item => item.classList.remove("active"));
+            if(items[index]) items[index].classList.add("active");
+        }
+
+        function loadDataFromDB() {
+            if (!db) return;
+            const txCand = db.transaction("candidates", "readonly");
+            const reqCand = txCand.objectStore("candidates").getAll();
+
+            reqCand.onsuccess = function() {
+                allCandidatesGlobal = reqCand.result;
+                
+                allCandidatesGlobal.sort((a,b) => {
+                    const scoreA = (a.theory_questions / 50) * 10.25;
+                    const scoreB = (b.theory_questions / 50) * 10.25;
+                    return scoreB - scoreA;
+                });
+                
+                allCandidatesGlobal.forEach((cand, idx) => { cand.top30 = (idx < 30); });
+
+                const txEval = db.transaction("evaluations", "readonly");
+                const reqEval = txEval.objectStore("evaluations").getAll();
+
+                reqEval.onsuccess = function() {
+                    allEvaluationsGlobal = reqEval.result;
+                    populateCandidateDropdowns();
+                    renderAdminCandidates();
+                    refreshRankings();
+                };
+            };
+        }
+
+        function populateCandidateDropdowns() {
+            const select = document.getElementById("eval-candidate-select");
+            select.innerHTML = '<option value="">-- Selecione o candidato --</option>';
+            allCandidatesGlobal.filter(c => c.top30).forEach(c => {
+                const opt = document.createElement("option");
+                opt.value = c.id;
+                opt.textContent = c.name;
+                select.appendChild(opt);
+            });
+
+            select.onchange = function() {
+                const form = document.getElementById("evaluation-form-container");
+                if (this.value) {
+                    form.style.display = "block";
+                    loadExistingEvaluation(this.value);
+                } else {
+                    form.style.display = "none";
+                }
+            };
+        }
+
+        function filterCandidateDropdown() {
+            const searchVal = document.getElementById("eval-candidate-search").value.toLowerCase();
+            const options = document.getElementById("eval-candidate-select").options;
+            for (let i = 1; i < options.length; i++) {
+                options[i].style.display = options[i].text.toLowerCase().includes(searchVal) ? "" : "none";
+            }
+        }
+
+        function loadExistingEvaluation(candidateId) {
+            const existing = allEvaluationsGlobal.find(e => e.candidate_id == candidateId && e.evaluator == currentEvaluator);
+            document.querySelectorAll("#evaluation-form-container input[type='number']").forEach(i => i.value = 0);
+            document.getElementById("score_penalty_respeito").checked = false;
+
+            if (existing) {
+                Object.keys(existing.scores).forEach(key => {
+                    if (document.getElementById(key)) document.getElementById(key).value = existing.scores[key];
+                });
+                document.getElementById("score_penalty_respeito").checked = existing.penalty_respeito;
+            }
+        }
+
+        function addCandidate() {
+            const name = document.getElementById("admin-cand-name").value.trim();
+            const questions = parseFloat(document.getElementById("admin-cand-theory").value);
+            if (!name || isNaN(questions) || questions < 0 || questions > 50) return alert("Insira dados válidos de 0 a 50 acertos.");
+
+            const tx = db.transaction("candidates", "readwrite");
+            tx.objectStore("candidates").add({ name, theory_questions: questions });
+            tx.oncomplete = function() {
+                document.getElementById("admin-cand-name").value = "";
+                document.getElementById("admin-cand-theory").value = "";
+                document.getElementById("admin-note-preview-el").textContent = "Nota convertida para peso 10.25: 0.000";
+                showVisualFeedback();
+                loadDataFromDB();
+            };
+        }
+
+        function importBulkCandidates() {
+            const rawText = document.getElementById("admin-bulk-paste").value.trim();
+            if(!rawText) return alert("Cole dados válidos da planilha primeiro.");
+
+            const lines = rawText.split(/\r?\n/);
+            const tx = db.transaction("candidates", "readwrite");
+            const store = tx.objectStore("candidates");
+            let count = 0;
+
+            lines.forEach(line => {
+                if(!line.trim()) return;
+                
+                let parts = line.split(/\t|;/);
+                let name = parts[0].trim();
+                let questions = 0;
+                
+                if(parts.length > 1) {
+                    questions = parseFloat(parts[1].replace(",", ".")) || 0;
+                }
+                
+                if(questions < 0) questions = 0;
+                if(questions > 50) questions = 50;
+
+                if(name.length > 1) {
+                    store.add({ name: name, theory_questions: questions });
+                    count++;
+                }
+            });
+
+            tx.oncomplete = function() {
+                document.getElementById("admin-bulk-paste").value = "";
+                alert(`${count} candidatos importados com sucesso direto da sua planilha!`);
+                showVisualFeedback();
+                loadDataFromDB();
+            };
+        }
+
+        function renderAdminCandidates() {
+            const container = document.getElementById("admin-candidates-render");
+            container.innerHTML = allCandidatesGlobal.length === 0 ? "<p style='color:#999; font-size:0.9rem; padding: 10px;'>Nenhum candidato.</p>" : "";
+            allCandidatesGlobal.forEach((c, idx) => {
+                const scaledScore = (c.theory_questions / 50) * 10.25;
+                const div = document.createElement("div");
+                div.className = "candidate-list-item";
+                div.innerHTML = `<div><strong>${c.name}</strong><div>Acertos: ${c.theory_questions} (Nota: ${scaledScore.toFixed(3)})</div></div>
+                    <span class="phase-badge ${c.top30 ? 'phase-30':'phase-out'}">${c.top30 ? 'Top 30 (Fase 2)':'Fase 1'}</span>`;
+                container.appendChild(div);
+            });
+        }
+
+        function submitEvaluation() {
+            const candidateId = parseInt(document.getElementById("eval-candidate-select").value);
+            if (!candidateId) return alert("Selecione um candidato.");
+
+            const inputs = document.querySelectorAll("#evaluation-form-container input[type='number']");
+            const scores = {};
+            let failed = false;
+
+            inputs.forEach(input => {
+                const val = parseFloat(input.value) || 0;
+                const max = parseFloat(input.getAttribute("max"));
+                if (val < 0 || val > max) { failed = true; alert("Nota inválida para os critérios."); input.focus(); }
+                scores[input.id] = val;
+            });
+            if (failed) return;
+
+            const evalData = {
+                candidate_id: candidateId,
+                evaluator: currentEvaluator,
+                scores: scores,
+                penalty_respeito: document.getElementById("score_penalty_respeito").checked,
+                timestamp: new Date().toISOString()
+            };
+
+            const tx = db.transaction("evaluations", "readwrite");
+            const store = tx.objectStore("evaluations");
+            const existing = allEvaluationsGlobal.find(e => e.candidate_id == candidateId && e.evaluator == currentEvaluator);
+            
+            if (existing) { evalData.id = existing.id; store.put(evalData); } 
+            else { store.add(evalData); }
+
+            tx.oncomplete = function() {
+                showVisualFeedback();
+                alert("Avaliação gravada localmente!");
+                document.getElementById("evaluation-form-container").style.display = "none";
+                document.getElementById("eval-candidate-select").value = "";
+                document.getElementById("eval-candidate-search").value = "";
+                loadDataFromDB();
+            };
+        }
+
+        function calculateScoresForCandidate(candidateId) {
+            const evals = allEvaluationsGlobal.filter(e => e.candidate_id == candidateId);
+            if (evals.length === 0) return 0;
+
+            const criteriaKeys = [
+                'score_org_apres', 'score_org_racio', 'score_org_compre', 'score_cri_art', 'score_cri_inov',
+                'score_met_ensino', 'score_cont_dom', 'score_cont_abord', 'score_cont_foco', 'score_cont_atual',
+                'score_pos_cord', 'score_pos_vest', 'score_pos_vocab', 'score_pos_corpo', 'score_pos_orat',
+                'score_ent_perg', 'score_ent_disp', 'score_ent_proat', 'score_ent_tempo'
+            ];
+
+            let sumOfCriteriaMeans = 0;
+            criteriaKeys.forEach(key => {
+                let s = evals.map(e => e.scores[key] || 0);
+                if (s.length >= 10) {
+                    s.sort((a, b) => a - b);
+                    s.pop(); s.shift();
+                    sumOfCriteriaMeans += (s.reduce((a, b) => a + b, 0) / s.length);
+                } else {
+                    sumOfCriteriaMeans += (s.reduce((a, b) => a + b, 0) / s.length);
+                }
+            });
+
+            let penalties = evals.map(e => e.penalty_respeito ? -1.0 : 0.0);
+            let pMean = 0;
+            if (penalties.length >= 10) {
+                penalties.sort((a,b) => a - b);
+                penalties.pop(); penalties.shift();
+                pMean = penalties.reduce((a,b) => a+b, 0) / penalties.length;
+            } else if (penalties.length > 0) {
+                pMean = penalties.reduce((a,b) => a+b, 0) / penalties.length;
+            }
+
+            return Math.max(0, sumOfCriteriaMeans + pMean);
+        }
+
+        function refreshRankings() {
+            const tbody = document.getElementById("results-table-body");
+            tbody.innerHTML = "";
+            
+            const list = allCandidatesGlobal.map(c => {
+                const scaledTheory = (c.theory_questions / 50) * 10.25;
+                const presentation = calculateScoresForCandidate(c.id);
+                return { 
+                    ...c, 
+                    scaled_theory: scaledTheory,
+                    presentation_score: presentation, 
+                    final_score: (scaledTheory + presentation) / 2,
+                    votes: allEvaluationsGlobal.filter(e => e.candidate_id == c.id).length 
+                };
+            }).sort((a, b) => b.final_score - a.final_score);
+
+            list.forEach((c, idx) => {
+                const tr = document.createElement("tr");
+                if(!c.top30) tr.style.opacity = "0.5";
+                tr.innerHTML = `<td style="text-align:center;"><span class="rank-badge">${idx + 1}</span></td>
+                    <td><strong>${c.name}</strong><div style="font-size:0.75rem; color:#777;">${c.votes} diretores lançaram</div></td>
+                    <td style="text-align:center;">${c.theory_questions}</td>
+                    <td style="text-align:center;">${c.scaled_theory.toFixed(3)}</td>
+                    <td style="text-align:center;">${c.presentation_score.toFixed(3)}</td>
+                    <td style="text-align:center; font-weight:bold; color:var(--primary-color);">${c.final_score.toFixed(3)}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function showVisualFeedback() {
+            document.getElementById("sync-status-msg").style.display = "flex";
+            setTimeout(() => { document.getElementById("sync-status-msg").style.display = "none"; }, 3000);
+        }
+
+        function exportProcessToCSV() {
+            let csvRows = [];
+            csvRows.push("Classificacao;Nome do Candidato;Acertos Prova (0-50);Nota Teorica Convertida (10.25);Nota Apresentacao (Segunda Fase);Nota Final;Status");
+
+            const list = allCandidatesGlobal.map(c => {
+                const scaledTheory = (c.theory_questions / 50) * 10.25;
+                const presentation = calculateScoresForCandidate(c.id);
+                return { 
+                    ...c, 
+                    scaled_theory: scaledTheory,
+                    presentation_score: presentation, 
+                    final_score: (scaledTheory + presentation) / 2
+                };
+            }).sort((a, b) => b.final_score - a.final_score);
+
+            list.forEach((c, idx) => {
+                const statusStr = c.top30 ? "Top 30 - Segunda Fase" : "Fase 1";
+                csvRows.push(`${idx + 1};${c.name};${c.theory_questions};${c.scaled_theory.toFixed(3)};${c.presentation_score.toFixed(3)};${c.final_score.toFixed(3)};${statusStr}`);
+            });
+
+            const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csvRows.join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `PROCESSO_SELETIVO_ALFA_RESULTADOS_${new Date().getFullYear()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }
+
+        function resetCompleteSystemForNextYear() {
+            if(confirm("⚠️ ATENÇÃO EXTREMA: Você está prestes a APAGAR PERMANENTEMENTE todos os candidatos e todas as notas de avaliações do banco de dados local para iniciar um novo ano. Certifique-se de ter feito a exportação antes! Deseja continuar?")) {
+                const tx1 = db.transaction("candidates", "readwrite").objectStore("candidates").clear();
+                const tx2 = db.transaction("evaluations", "readwrite").objectStore("evaluations").clear();
+                
+                tx2.oncomplete = function() {
+                    alert("O sistema foi totalmente resetado com sucesso! Pronto para o próximo ano.");
+                    loadDataFromDB();
+                };
+            }
+        }
+    </script>
+</body>
+</html>
