@@ -307,7 +307,7 @@
                 <h2>Lançar Notas da Apresentação</h2>
                 <div class="form-group">
                     <label for="eval-candidate-search">Buscar Candidato (Top 30)</label>
-                    <input type="text" id="eval-candidate-search" placeholder="🔍 Digite para pesquisar..." oninput="filterCandidateDropdown()">
+                    <input type="text" id="eval-candidate-search" placeholder="🔍 Digite para pesquisar ou reabrir nota..." oninput="filterCandidateDropdown()">
                 </div>
                 <div class="form-group">
                     <label for="eval-candidate-select">Candidato Selecionado</label>
@@ -583,7 +583,7 @@
 
     <script>
         // ================= CONFIGURAÇÃO DO SUPABASE =================
-        const SUPABASE_URL = "https://brxsadclalncfseixsei.supabase.co"; // URL Corrigida (sem o /rest/v1/)
+        const SUPABASE_URL = "https://brxsadclalncfseixsei.supabase.co"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJyeHNhZGNsYWxuY2ZzZWl4c2VpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzMTYyNzgsImV4cCI6MjA5OTg5MjI3OH0.eA6-Qf8wJHEvM4n7uTBQ1v8NKV1fFYGsFQ59cXgWpYk";
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -741,6 +741,7 @@
                 }).subscribe();
         }
 
+        // Dropdown renderiza apenas quem não foi votado ainda por padrão
         function populateCandidateDropdowns() {
             const select = document.getElementById("eval-candidate-select");
             select.innerHTML = '<option value="">-- Selecione o candidato --</option>';
@@ -766,12 +767,34 @@
             };
         }
 
+        // ENGINE CORRIGIDO: Recria as opções do dropdown dinamicamente com base no texto digitado
         function filterCandidateDropdown() {
-            const searchVal = document.getElementById("eval-candidate-search").value.toLowerCase();
-            const options = document.getElementById("eval-candidate-select").options;
-            for (let i = 1; i < options.length; i++) {
-                options[i].style.display = options[i].text.toLowerCase().includes(searchVal) ? "" : "none";
-            }
+            const searchVal = document.getElementById("eval-candidate-search").value.toLowerCase().trim();
+            const select = document.getElementById("eval-candidate-select");
+            const currentSelectedValue = select.value;
+            
+            select.innerHTML = '<option value="">-- Selecione o candidato --</option>';
+            
+            const eligibleCandidates = allCandidatesGlobal.filter(c => c.top30);
+
+            eligibleCandidates.forEach(c => {
+                const alreadyEvaluatedByMe = allEvaluationsGlobal.some(e => e.candidate_id === c.id && e.evaluator.toLowerCase().trim() === currentEvaluator.toLowerCase().trim());
+                const nameMatchesSearch = c.name.toLowerCase().includes(searchVal);
+                
+                // Regra: Mostra se não foi avaliado, OU se o nome bate com a busca (permitindo a reabertura de nota)
+                if (!alreadyEvaluatedByMe || (searchVal !== "" && nameMatchesSearch)) {
+                    const opt = document.createElement("option");
+                    opt.value = c.id;
+                    opt.textContent = c.name;
+                    if (alreadyEvaluatedByMe) {
+                        opt.textContent += " (Já Avaliado - Clique para Corrigir)";
+                    }
+                    select.appendChild(opt);
+                }
+            });
+
+            // Mantém a seleção anterior se ela ainda existir na nova lista filtrada
+            select.value = currentSelectedValue;
         }
 
         function loadExistingEvaluation(candidateId) {
