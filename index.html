@@ -35,28 +35,41 @@
             padding-bottom: 80px;
         }
 
-        header {
+header {
             background: linear-gradient(135deg, var(--primary-color), #3d102b);
             color: white;
-            padding: 15px;
-            text-align: center;
+            padding: 12px 20px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.15);
             position: sticky;
             top: 0;
             z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 15px; /* Espaço entre a logo e o texto */
+        }
+
+        .header-logo {
+            width: 50px; /* Altura e largura ideais para o topo */
+            height: 50px;
+            object-fit: contain;
+        }
+
+        .header-text-container {
+            text-align: left; /* Garante o alinhamento à esquerda */
+            flex: 1;
         }
 
         header h1 {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 700;
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
 
         header p {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             opacity: 0.9;
-            margin-top: 3px;
+            margin-top: 2px;
         }
 
         .badge-status {
@@ -440,8 +453,11 @@
 <body>
 
     <header>
-        <h1>Processo Seletivo ALFA</h1>
-        <p>Liga de Emergências Médicas e Trauma</p>
+        <img src="logo.png" alt="Logo Alfa" class="header-logo">
+        <div class="header-text-container">
+            <h1>Processo Seletivo - Projeto Alfa</h1>
+            <p>Liga de Emergências Médicas e Trauma</p>
+        </div>
         <div id="online-status" class="badge-status">Modo Local (PWA)</div>
     </header>
 
