@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Processo Seletivo - ALFA V4</title>
+    <title>Processo Seletivo - ALFA V5</title>
     <meta name="theme-color" content="#5c1d43">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -799,7 +799,7 @@
 
     <script>
         let db;
-        const dbRequest = indexedDB.open("AlfaProcessoSeletivoDB_V4", 1);
+        const dbRequest = indexedDB.open("AlfaProcessoSeletivoDB_V5", 1);
 
         dbRequest.onupgradeneeded = function(event) {
             const database = event.target.result;
@@ -847,19 +847,16 @@
             }
         }
 
-        // Unificação em tempo real da digitação de ponto para vírgula na tela
         function formatDecimalInput(inputEl) {
             let val = inputEl.value;
             val = val.replace('.', ',');
-            // Impede digitação de caracteres não numéricos exceto uma vírgula
             val = val.replace(/[^0-9,]/g, '');
             const parts = val.split(',');
-            if(parts.length > 2) val = parts[0] + ',' + parts[1]; // Evita duas vírgulas
-            if(parts[1] && parts[1].length > 2) val = parts[0] + ',' + parts[1].slice(0, 2); // Limita em 2 casas
+            if(parts.length > 2) val = parts[0] + ',' + parts[1];
+            if(parts[1] && parts[1].length > 2) val = parts[0] + ',' + parts[1].slice(0, 2);
             inputEl.value = val;
         }
 
-        // Converte string com vírgula ou ponto de volta para float matemático limpo
         function parseInputToFloat(valStr) {
             if(!valStr) return 0;
             const sanitized = valStr.toString().replace(',', '.');
@@ -969,7 +966,6 @@
             };
         }
 
-        // REGRA DE OURO EXCLUSIVA: Sumir da lista do avaliador atual caso ele já tenha finalizado as notas daquele id
         function populateCandidateDropdowns() {
             const select = document.getElementById("eval-candidate-select");
             select.innerHTML = '<option value="">-- Selecione o candidato --</option>';
@@ -977,10 +973,7 @@
             const eligibleCandidates = allCandidatesGlobal.filter(c => c.top30);
 
             eligibleCandidates.forEach(c => {
-                // Checa se o avaliador logado neste momento já deu nota para esse candidato
                 const alreadyEvaluatedByMe = allEvaluationsGlobal.some(e => e.candidate_id === c.id && e.evaluator.toLowerCase().trim() === currentEvaluator.toLowerCase().trim());
-                
-                // Só adiciona na lista se ele ainda NÃO foi avaliado por esse diretor
                 if (!alreadyEvaluatedByMe) {
                     const opt = document.createElement("option");
                     opt.value = c.id;
@@ -1016,7 +1009,6 @@
             if (existing) {
                 Object.keys(existing.scores).forEach(key => {
                     if (document.getElementById(key)) {
-                        // Exibe de volta para o formato unificado com vírgula
                         document.getElementById(key).value = existing.scores[key].toString().replace('.', ',');
                     }
                 });
@@ -1055,7 +1047,7 @@
                 let name = parts[0].trim();
                 let questions = 0;
                 
-                if(parts.length > 1) {
+                if(parts.length >Part 1) {
                     questions = parseFloat(parts[1].replace(",", ".")) || 0;
                 }
                 if(questions < 0) questions = 0;
@@ -1097,7 +1089,6 @@
             let failed = false;
 
             inputs.forEach(input => {
-                // Conversão robusta aceitando ponto e vírgula
                 const val = parseInputToFloat(input.value);
                 const max = parseFloat(input.parentNode.parentNode.querySelector('.subitem-max').textContent.replace(/[^0-9,.]/g, '').replace(',', '.'));
                 
@@ -1106,7 +1097,7 @@
                     alert(`Nota inválida no item "${input.parentNode.parentNode.querySelector('.subitem-title').textContent}". Limite máximo permitido: ${max.toString().replace('.', ',')}`); 
                     input.focus(); 
                 }
-                scores[input.id] = parseFloat(val.toFixed(2)); // Grava forçado em até 2 casas
+                scores[input.id] = parseFloat(val.toFixed(2));
             });
             if (failed) return;
 
@@ -1131,8 +1122,19 @@
                 document.getElementById("evaluation-form-container").style.display = "none";
                 document.getElementById("eval-candidate-select").value = "";
                 document.getElementById("eval-candidate-search").value = "";
-                loadDataFromDB(); // Recarrega para aplicar o filtro instantâneo de exclusão do dropdown
+                loadDataFromDB();
             };
+        }
+
+        // Retorna a soma total calculada de uma única avaliação enviada por um diretor específico
+        function getSingleBancaTotal(evaluationObj) {
+            if(!evaluationObj || !evaluationObj.scores) return 0;
+            let sum = 0;
+            Object.keys(evaluationObj.scores).forEach(key => {
+                sum += evaluationObj.scores[key] || 0;
+            });
+            if(evaluationObj.penalty_respeito) sum -= 1.0;
+            return Math.max(0, sum);
         }
 
         function calculateScoresForCandidate(candidateId) {
@@ -1205,9 +1207,16 @@
             setTimeout(() => { document.getElementById("sync-status-msg").style.display = "none"; }, 3000);
         }
 
+        // EXPORTAÇÃO COMPLETA: Monta colunas individuais para até 10 diretores com identificação de [MIN] e [MAX] calculados
         function exportProcessToCSV() {
             let csvRows = [];
-            csvRows.push("Classificacao;Nome do Candidato;Acertos Prova (0-50);Nota Teorica Convertida (10.25);Nota Apresentacao (Segunda Fase);Nota Final;Status");
+            
+            // Gerar Cabeçalho do arquivo
+            let headerRow = "Classificacao;Nome do Candidato;Acertos Prova (0-50);Nota Teorica Convertida (10.25);Nota Apresentacao (Segunda Fase);Nota Final;Status";
+            for(let i = 1; i <= 10; i++) {
+                headerRow += `;Banca ${i} (Nota Bruta)`;
+            }
+            csvRows.push(headerRow);
 
             const list = allCandidatesGlobal.map(c => {
                 const scaledTheory = (c.theory_questions / 50) * 10.25;
@@ -1222,14 +1231,56 @@
 
             list.forEach((c, idx) => {
                 const statusStr = c.top30 ? "Top 30 - Segunda Fase" : "Fase 1";
-                csvRows.push(`${idx + 1};${c.name};${c.theory_questions};${c.scaled_theory.toFixed(2).replace('.', ',')};${c.presentation_score.toFixed(2).replace('.', ',')};${c.final_score.toFixed(3).replace('.', ',')};${statusStr}`);
+                let baseData = `${idx + 1};${c.name};${c.theory_questions};${c.scaled_theory.toFixed(2).replace('.', ',')};${c.presentation_score.toFixed(2).replace('.', ',')};${c.final_score.toFixed(3).replace('.', ',')};${statusStr}`;
+                
+                // Mapeia todas as avaliações que esse candidato específico recebeu
+                let evalsForThisCand = allEvaluationsGlobal.filter(e => e.candidate_id === c.id);
+                
+                // Calcula os totais de cada banca ativa para identificar extremos
+                let bancaTotals = evalsForThisCand.map(e => ({
+                    evaluator: e.evaluator,
+                    total: getSingleBancaTotal(e)
+                }));
+
+                let maxVal = -1;
+                let minVal = 999;
+
+                // Apenas define limites se a banca atingir a maturidade de 10 diretores avaliando
+                if(bancaTotals.length >= 10) {
+                    let sortedTotals = bancaTotals.map(b => b.total).sort((a,b) => a - b);
+                    minVal = sortedTotals[0];
+                    maxVal = sortedTotals[sortedTotals.length - 1];
+                }
+
+                // Escreve os resultados de cada uma das 10 colunas de diretores
+                for(let i = 0; i < 10; i++) {
+                    if(bancaTotals[i]) {
+                        let currentTotal = bancaTotals[i].total;
+                        let label = currentTotal.toFixed(2).replace('.', ',');
+                        
+                        // Marca textualmente os extremos removidos pelo algoritmo ALFA
+                        if(bancaTotals.length >= 10) {
+                            if(currentTotal === minVal) {
+                                label += " [CORTADA - MIN]";
+                                minVal = -99; // Evita marcar duplicados caso haja notas mínimas iguais
+                            } else if(currentTotal === maxVal) {
+                                label += " [CORTADA - MAX]";
+                                maxVal = 999; // Evita marcar duplicados caso haja notas máximas iguais
+                            }
+                        }
+                        baseData += `;"${bancaTotals[i].evaluator}: ${label}"`;
+                    } else {
+                        baseData += ";-"; // Coluna vazia se o diretor correspondente ainda não votou
+                    }
+                }
+                csvRows.push(baseData);
             });
 
             const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csvRows.join("\n");
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `PROCESSO_SELETIVO_ALFA_RESULTADOS_${new Date().getFullYear()}.csv`);
+            link.setAttribute("download", `PROCESSO_SELETIVO_ALFA_AUDITORIA_${new Date().getFullYear()}.csv`);
             document.body.appendChild(link);
             link.click();
             link.remove();
