@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Processo Seletivo - ALFA V5</title>
+    <title>Processo Seletivo - ALFA V6</title>
     <meta name="theme-color" content="#5c1d43">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
+    
+    <!-- Bibliotecas externas para exportação profissional nativa Excel de forma offline -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <style>
         :root {
@@ -761,7 +764,7 @@
             <div class="card card-green">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
                     <h2>Classificação Geral</h2>
-                    <button class="btn btn-secondary" style="width: auto; padding: 8px 15px; font-size: 0.85rem;" onclick="exportProcessToCSV()">📥 Exportar Resultado Oficial (CSV)</button>
+                    <button class="btn btn-secondary" style="width: auto; padding: 8px 15px; font-size: 0.85rem;" onclick="exportProcessToExcelXLSX()">📥 Exportar Planilha Auditoria (.XLSX)</button>
                 </div>
                 <div style="overflow-x: auto;">
                     <table>
@@ -1047,7 +1050,7 @@
                 let name = parts[0].trim();
                 let questions = 0;
                 
-                if(parts.length >Part 1) {
+                if(parts.length > 1) {
                     questions = parseFloat(parts[1].replace(",", ".")) || 0;
                 }
                 if(questions < 0) questions = 0;
@@ -1126,7 +1129,6 @@
             };
         }
 
-        // Retorna a soma total calculada de uma única avaliação enviada por um diretor específico
         function getSingleBancaTotal(evaluationObj) {
             if(!evaluationObj || !evaluationObj.scores) return 0;
             let sum = 0;
@@ -1207,17 +1209,28 @@
             setTimeout(() => { document.getElementById("sync-status-msg").style.display = "none"; }, 3000);
         }
 
-        // EXPORTAÇÃO COMPLETA: Monta colunas individuais para até 10 diretores com identificação de [MIN] e [MAX] calculados
-        function exportProcessToCSV() {
-            let csvRows = [];
+        // ================= REVOLUÇÃO DA EXPORTAÇÃO: ENGINE EXCEL .XLSX COM AS CÉLULAS TEXTUAIS MARCADAS =================
+        function exportProcessToExcelXLSX() {
+            // Criar array de matrizes com o cabeçalho base do Projeto Alfa
+            let dataMatrix = [];
             
-            // Gerar Cabeçalho do arquivo
-            let headerRow = "Classificacao;Nome do Candidato;Acertos Prova (0-50);Nota Teorica Convertida (10.25);Nota Apresentacao (Segunda Fase);Nota Final;Status";
+            let headerRow = [
+                "Classificação", 
+                "Nome do Candidato", 
+                "Acertos Prova (0-50)", 
+                "Nota Teórica (10.25)", 
+                "Nota Apresentação (Banca)", 
+                "Nota Final Ponderada", 
+                "Status"
+            ];
+            
+            // Adicionar 10 colunas dinâmicas para as bancas examinadoras
             for(let i = 1; i <= 10; i++) {
-                headerRow += `;Banca ${i} (Nota Bruta)`;
+                headerRow.push(`Banca ${i} (Nota Bruta)`);
             }
-            csvRows.push(headerRow);
+            dataMatrix.push(headerRow);
 
+            // Ordenar a lista dos candidatos por nota final ponderada
             const list = allCandidatesGlobal.map(c => {
                 const scaledTheory = (c.theory_questions / 50) * 10.25;
                 const presentation = calculateScoresForCandidate(c.id);
@@ -1229,14 +1242,21 @@
                 };
             }).sort((a, b) => b.final_score - a.final_score);
 
+            // Varrer a lista para injetar as linhas no arquivo do Excel
             list.forEach((c, idx) => {
                 const statusStr = c.top30 ? "Top 30 - Segunda Fase" : "Fase 1";
-                let baseData = `${idx + 1};${c.name};${c.theory_questions};${c.scaled_theory.toFixed(2).replace('.', ',')};${c.presentation_score.toFixed(2).replace('.', ',')};${c.final_score.toFixed(3).replace('.', ',')};${statusStr}`;
                 
-                // Mapeia todas as avaliações que esse candidato específico recebeu
+                let rowData = [
+                    idx + 1,
+                    c.name,
+                    c.theory_questions,
+                    parseFloat(c.scaled_theory.toFixed(3)),
+                    parseFloat(c.presentation_score.toFixed(3)),
+                    parseFloat(c.final_score.toFixed(3)),
+                    statusStr
+                ];
+                
                 let evalsForThisCand = allEvaluationsGlobal.filter(e => e.candidate_id === c.id);
-                
-                // Calcula os totais de cada banca ativa para identificar extremos
                 let bancaTotals = evalsForThisCand.map(e => ({
                     evaluator: e.evaluator,
                     total: getSingleBancaTotal(e)
@@ -1245,45 +1265,44 @@
                 let maxVal = -1;
                 let minVal = 999;
 
-                // Apenas define limites se a banca atingir a maturidade de 10 diretores avaliando
+                // Definir os extremos matemáticos se houver o quórum completo de 10 diretores
                 if(bancaTotals.length >= 10) {
                     let sortedTotals = bancaTotals.map(b => b.total).sort((a,b) => a - b);
                     minVal = sortedTotals[0];
                     maxVal = sortedTotals[sortedTotals.length - 1];
                 }
 
-                // Escreve os resultados de cada uma das 10 colunas de diretores
+                // Inserir os dados das células das 10 bancas aplicando a sinalização estrita
                 for(let i = 0; i < 10; i++) {
                     if(bancaTotals[i]) {
                         let currentTotal = bancaTotals[i].total;
-                        let label = currentTotal.toFixed(2).replace('.', ',');
+                        let cellText = `${bancaTotals[i].evaluator}: ${currentTotal.toFixed(2).replace('.', ',')}`;
                         
-                        // Marca textualmente os extremos removidos pelo algoritmo ALFA
                         if(bancaTotals.length >= 10) {
                             if(currentTotal === minVal) {
-                                label += " [CORTADA - MIN]";
-                                minVal = -99; // Evita marcar duplicados caso haja notas mínimas iguais
+                                cellText += " [CORTADA - MENOR NOTA]";
+                                minVal = -99; // Evita que empates limpem notas válidas
                             } else if(currentTotal === maxVal) {
-                                label += " [CORTADA - MAX]";
-                                maxVal = 999; // Evita marcar duplicados caso haja notas máximas iguais
+                                cellText += " [CORTADA - MAIOR NOTA]";
+                                maxVal = 999; // Evita que empates limpem notas válidas
                             }
                         }
-                        baseData += `;"${bancaTotals[i].evaluator}: ${label}"`;
+                        rowData.push(cellText);
                     } else {
-                        baseData += ";-"; // Coluna vazia se o diretor correspondente ainda não votou
+                        rowData.push("-");
                     }
                 }
-                csvRows.push(baseData);
+                dataMatrix.push(rowData);
             });
 
-            const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csvRows.join("\n");
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `PROCESSO_SELETIVO_ALFA_AUDITORIA_${new Date().getFullYear()}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
+            // Geração nativa da planilha via biblioteca JS-XLSX (Roda 100% offline no telefone/PC)
+            let wb = XLSX.utils.book_new();
+            let ws = XLSX.utils.aoa_to_sheet(dataMatrix);
+            
+            XLSX.utils.book_append_sheet(wb, ws, "Resultado Final Alfa");
+            
+            // Forçar o download do binário nativo do Excel codificado sem quebra de colunas
+            XLSX.writeFile(wb, `PROCESSO_SELETIVO_ALFA_AUDITORIA_${new Date().getFullYear()}.xlsx`);
         }
 
         function resetCompleteSystemForNextYear() {
