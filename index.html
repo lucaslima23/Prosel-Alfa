@@ -260,7 +260,7 @@
 
     <div id="evaluator-profile-banner" class="evaluator-banner" style="display:none;">
         <span>Avaliador(a): <strong id="current-evaluator-name">-</strong></span>
-        <button class="change-evaluator-btn" onclick="clearEvaluator()">Trocar Nome</button>
+        <button class="change-evaluator-btn" onclick="clearEvaluator()">Trocar Avaliador</button>
     </div>
 
     <main>
@@ -586,8 +586,8 @@
 
     <script>
         // ================= CONFIGURAÇÃO DO SUPABASE (COLE SUAS CHAVES AQUI) =================
-        const SUPABASE_URL = "https://SEU_PROJETO.supabase.co";
-        const SUPABASE_ANON_KEY = "SUA_CHAVE_ANON_AQUI";
+        const SUPABASE_URL = "https://brxsadclalncfseixsei.supabase.co/rest/v1/";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJyeHNhZGNsYWxuY2ZzZWl4c2VpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzMTYyNzgsImV4cCI6MjA5OTg5MjI3OH0.eA6-Qf8wJHEvM4n7uTBQ1v8NKV1fFYGsFQ59cXgWpYk";
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
