@@ -199,6 +199,18 @@
         .btn-secondary { background-color: var(--secondary-color); }
         .btn-outline { background-color: transparent; color: var(--primary-color); border: 2px solid var(--primary-color); box-shadow: none; }
 
+        .btn-action-sm {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 4px;
+        }
+        .btn-edit { background-color: #f7d117; color: #5c1d43; }
+        .btn-delete { background-color: #d93838; color: white; }
+
         .criteria-category { background: #fdfbfc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 15px; }
         .criteria-category h3 { font-size: 0.95rem; color: var(--primary-color); margin-bottom: 10px; display: flex; justify-content: space-between; }
         .subitem-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #efe9ec; }
@@ -259,7 +271,7 @@
 
     <div id="evaluator-profile-banner" class="evaluator-banner" style="display:none;">
         <span>Avaliador(a): <strong id="current-evaluator-name">-</strong></span>
-        <button class="change-evaluator-btn" onclick="clearEvaluator()">Trocar Avaliador</button>
+        <button class="change-evaluator-btn" onclick="clearEvaluator()">Trocar Nome</button>
     </div>
 
     <main>
@@ -529,7 +541,7 @@
 
             <div class="card card-green">
                 <h2>Lista de Candidatos na Nuvem</h2>
-                <div id="admin-candidates-render" style="max-height: 250px; overflow-y: auto;"></div>
+                <div id="admin-candidates-render" style="max-height: 300px; overflow-y: auto;"></div>
             </div>
             
             <div class="card" style="border-left-color: var(--danger-color);">
@@ -741,7 +753,6 @@
                 }).subscribe();
         }
 
-        // Dropdown renderiza apenas quem não foi votado ainda por padrão
         function populateCandidateDropdowns() {
             const select = document.getElementById("eval-candidate-select");
             select.innerHTML = '<option value="">-- Selecione o candidato --</option>';
@@ -767,21 +778,18 @@
             };
         }
 
-        // ENGINE CORRIGIDO: Recria as opções do dropdown dinamicamente com base no texto digitado
         function filterCandidateDropdown() {
             const searchVal = document.getElementById("eval-candidate-search").value.toLowerCase().trim();
             const select = document.getElementById("eval-candidate-select");
             const currentSelectedValue = select.value;
             
             select.innerHTML = '<option value="">-- Selecione o candidato --</option>';
-            
             const eligibleCandidates = allCandidatesGlobal.filter(c => c.top30);
 
             eligibleCandidates.forEach(c => {
                 const alreadyEvaluatedByMe = allEvaluationsGlobal.some(e => e.candidate_id === c.id && e.evaluator.toLowerCase().trim() === currentEvaluator.toLowerCase().trim());
                 const nameMatchesSearch = c.name.toLowerCase().includes(searchVal);
                 
-                // Regra: Mostra se não foi avaliado, OU se o nome bate com a busca (permitindo a reabertura de nota)
                 if (!alreadyEvaluatedByMe || (searchVal !== "" && nameMatchesSearch)) {
                     const opt = document.createElement("option");
                     opt.value = c.id;
@@ -793,7 +801,6 @@
                 }
             });
 
-            // Mantém a seleção anterior se ela ainda existir na nova lista filtrada
             select.value = currentSelectedValue;
         }
 
@@ -859,17 +866,68 @@
             }
         }
 
+        // ================= GERENCIAMENTO INDIVIDUAL DE CANDIDATOS NO ADMIN =================
         function renderAdminCandidates() {
             const container = document.getElementById("admin-candidates-render");
             container.innerHTML = allCandidatesGlobal.length === 0 ? "<p style='color:#999; font-size:0.9rem; padding: 10px;'>Nenhum candidato.</p>" : "";
+            
             allCandidatesGlobal.forEach((c, idx) => {
                 const scaledScore = (c.theory_questions / 50) * 10.25;
                 const div = document.createElement("div");
                 div.className = "candidate-list-item";
-                div.innerHTML = `<div><strong>${c.name}</strong><div>Acertos: ${c.theory_questions} (Nota: ${scaledScore.toFixed(3).replace('.', ',')})</div></div>
-                    <span class="phase-badge ${c.top30 ? 'phase-30':'phase-out'}">${c.top30 ? 'Top 30 (Fase 2)':'Fase 1'}</span>`;
+                div.innerHTML = `
+                    <div style="flex: 1; padding-right: 10px;">
+                        <strong>${c.name}</strong>
+                        <div style="font-size:0.8rem; color:#666;">Acertos: ${c.theory_questions} (Nota: ${scaledScore.toFixed(3).replace('.', ',')})</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span class="phase-badge ${c.top30 ? 'phase-30':'phase-out'}">${c.top30 ? 'Top 30':'Fase 1'}</span>
+                        <button class="btn-action-sm btn-edit" onclick="editCandidatePrompt(${c.id}, '${c.name.replace(/'/g, "\\'")}', ${c.theory_questions})">✏️</button>
+                        <button class="btn-action-sm btn-delete" onclick="deleteCandidatePrompt(${c.id}, '${c.name.replace(/'/g, "\\'")}')">🗑️</button>
+                    </div>
+                `;
                 container.appendChild(div);
             });
+        }
+
+        async function editCandidatePrompt(id, currentName, currentQuestions) {
+            const newName = prompt("Editar Nome do Candidato:", currentName);
+            if (newName === null) return; // Cancelado
+            
+            const newQuestionsStr = prompt("Editar Número de Acertos na Prova (0 a 50):", currentQuestions);
+            if (newQuestionsStr === null) return; // Cancelado
+
+            const parsedQuestions = parseFloat(newQuestionsStr.replace(',', '.'));
+            
+            if (!newName.trim() || isNaN(parsedQuestions) || parsedQuestions < 0 || parsedQuestions > 50) {
+                return alert("Dados inválidos fornecidos.");
+            }
+
+            const { error } = await _supabase
+                .from('candidatos')
+                .update({ name: newName.trim(), theory_questions: parsedQuestions })
+                .eq('id', id);
+
+            if (error) alert("Erro ao atualizar no banco: " + error.message);
+            else {
+                alert("Candidato atualizado com sucesso!");
+                loadDataFromSupabase();
+            }
+        }
+
+        async function deleteCandidatePrompt(id, name) {
+            if (confirm(`Tem certeza de que deseja EXCLUIR permanentemente o candidato "${name}"?\n\nTodas as avaliações lançadas para ele também serão deletadas.`)) {
+                const { error } = await _supabase
+                    .from('candidatos')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) alert("Erro ao excluir do banco: " + error.message);
+                else {
+                    alert("Candidato removido com sucesso!");
+                    loadDataFromSupabase();
+                }
+            }
         }
 
         async function submitEvaluation() {
